@@ -1,14 +1,63 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Patch, UseGuards, Param, Delete } from '@nestjs/common';
 import { ApiGatewayService } from './api-gateway.service';
-import { DemoResponseDto } from '@app/shared-lib';
-import { Observable } from 'rxjs';
+import { AuthGuard } from '@nestjs/passport';
+import { Request } from '@nestjs/common';
+import { UpdateProfileDto, CreateProductDto, UpdateProductDto } from '@app/shared-lib';
+import { Roles } from './decorators/roles.decorator';
+import { RolesGuard } from './guards/roles.guard';
 
 @Controller()
 export class ApiGatewayController {
   constructor(private readonly apiGatewayService: ApiGatewayService) {}
 
-  @Get('data-from-demo2')
-  getDataFromDemo2(): Observable<DemoResponseDto> {
-    return this.apiGatewayService.sendRequestToDemo2();
+  @Post('auth/register')
+  register(@Body() body: any) {
+    return this.apiGatewayService.register(body);
+  }
+
+  @Post('auth/login')
+  login(@Body() body: any) {
+    return this.apiGatewayService.login(body);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('auth/profile')
+  updateProfile(@Request() req, @Body() body: UpdateProfileDto) {
+    const userId = req.user.userId;
+    const dataToSend = { ...body, userId };
+    return this.apiGatewayService.updateProfile(dataToSend);
+  }
+
+
+  @Get('products')
+  findAllProducts() {
+    return this.apiGatewayService.findAllProducts();
+  }
+
+  @Get('products/:id')
+  findOneProduct(@Param('id') id: string) {
+    return this.apiGatewayService.findOneProduct(id);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  @Post('products')
+  createProduct(@Body() body: CreateProductDto) {
+    return this.apiGatewayService.createProduct(body);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  @Patch('products/:id')
+  updateProduct(@Param('id') id: string, @Body() body: UpdateProductDto) {
+    // รวม ID เข้ากับ Body เพื่อส่งไป Service
+    return this.apiGatewayService.updateProduct({ ...body, id });
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  @Delete('products/:id')
+  deleteProduct(@Param('id') id: string) {
+    return this.apiGatewayService.deleteProduct(id);
   }
 }

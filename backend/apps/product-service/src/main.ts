@@ -1,19 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { Demo2Module } from './demo-2.module';
+import { ProductServiceModule } from './product-service.module';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    Demo2Module,
+    ProductServiceModule,
     {
       transport: Transport.TCP,
       options: {
         host: 'localhost',
-        port: 3001, // Port ต้องไม่ซ้ำกับ Gateway
+        port: 3003,
       },
     },
   );
   await app.listen();
-  console.log('🚀 Demo-2 Microservice is listening on port 3001');
+  console.log('🔐 Product Service is listening on port 3003');
 }
 bootstrap();

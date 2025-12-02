@@ -19,13 +19,22 @@
         "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
       }
     },
-    "demo-2": {
+    "auth-service": {
       "type": "application",
-      "root": "apps/demo-2",
+      "root": "apps/auth-service",
       "entryFile": "main",
-      "sourceRoot": "apps/demo-2/src",
+      "sourceRoot": "apps/auth-service/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/demo-2/tsconfig.app.json"
+        "tsConfigPath": "apps/auth-service/tsconfig.app.json"
+      }
+    },
+    "product-service": {
+      "type": "application",
+      "root": "apps/product-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/product-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/product-service/tsconfig.app.json"
       }
     },
     "shared-lib": {

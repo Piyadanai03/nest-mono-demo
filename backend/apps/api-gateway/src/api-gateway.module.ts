@@ -2,18 +2,32 @@ import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ApiGatewayController } from './api-gateway.controller';
 import { ApiGatewayService } from './api-gateway.service';
+import { ConfigModule } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: './.env',
+    }),
+    PassportModule,
     ClientsModule.register([
       {
-        name: 'DEMO_2_SERVICE', // Token ชื่อนี้ต้องตรงกับที่ Inject ใน Service/Controller
+        name: 'AUTH_SERVICE',
         transport: Transport.TCP,
-        options: { host: 'localhost', port: 3001 }, // ต้องตรงกับ Demo-2
+        options: { host: 'localhost', port: 3002 },
+      },
+      {
+        name: 'PRODUCT_SERVICE',
+        transport: Transport.TCP,
+        options: { host: 'localhost', port: 3003 },
       },
     ]),
   ],
   controllers: [ApiGatewayController],
-  providers: [ApiGatewayService],
+  providers: [ApiGatewayService, JwtService, JwtStrategy],
 })
 export class ApiGatewayModule {}

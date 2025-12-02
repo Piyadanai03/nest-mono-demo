@@ -1,24 +1,41 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { DemoMessageDto, DemoResponseDto } from '@app/shared-lib';
-import { Observable } from 'rxjs';
+import { CreateUserDto, LoginUserDto, UpdateProfileDto, CreateProductDto, UpdateProductDto } from '@app/shared-lib';
 
 @Injectable()
 export class ApiGatewayService {
   constructor(
-    @Inject('DEMO_2_SERVICE') private clientDemo2: ClientProxy,
+    @Inject('AUTH_SERVICE') private clientAuth: ClientProxy,
+    @Inject('PRODUCT_SERVICE') private clientProduct: ClientProxy,
   ) {}
 
-  sendRequestToDemo2(): Observable<DemoResponseDto> {
-    const payload: DemoMessageDto = {
-      id: 101,
-      message: 'Hello from API Gateway',
-    };
-    
-    // ส่งข้อมูลไปยัง Pattern 'get_demo_data'
-    return this.clientDemo2.send<DemoResponseDto, DemoMessageDto>(
-      'get_demo_data',
-      payload,
-    );
+  register(data: CreateUserDto) {
+    return this.clientAuth.send('auth.register', data);
+  }
+  login(data: LoginUserDto) {
+    return this.clientAuth.send('auth.login', data);
+  }
+  updateProfile(data: UpdateProfileDto) {
+    return this.clientAuth.send('auth.updateProfile', data);
+  }
+
+  createProduct(data: CreateProductDto) {
+    return this.clientProduct.send('product.create', data);
+  }
+
+  findAllProducts() {
+    return this.clientProduct.send('product.findAll', {});
+  }
+
+  findOneProduct(id: string) {
+    return this.clientProduct.send('product.findOne', id);
+  }
+
+  updateProduct(data: UpdateProductDto) {
+    return this.clientProduct.send('product.update', data);
+  }
+
+  deleteProduct(id: string) {
+    return this.clientProduct.send('product.delete', id);
   }
 }

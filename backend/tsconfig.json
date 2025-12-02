@@ -27,6 +27,12 @@
       ],
       "@app/shared-lib/*": [
         "libs/shared-lib/src/*"
+      ],
+      "@app/prisma": [
+        "libs/prisma/src"
+      ],
+      "@app/prisma/*": [
+        "libs/prisma/src/*"
       ]
     }
   }
