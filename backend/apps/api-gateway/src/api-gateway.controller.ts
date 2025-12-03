@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Put, Patch, UseGuards, Param, Delete } fro
 import { ApiGatewayService } from './api-gateway.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from '@nestjs/common';
-import { UpdateProfileDto, CreateProductDto, UpdateProductDto } from '@app/shared-lib';
+import { UpdateProfileDto, CreateProductDto, UpdateProductDto  , LoginUserDto , CreateUserDto} from '@app/shared-lib';
 import { Roles } from './decorators/roles.decorator';
 import { RolesGuard } from './guards/roles.guard';
 
@@ -11,12 +11,12 @@ export class ApiGatewayController {
   constructor(private readonly apiGatewayService: ApiGatewayService) {}
 
   @Post('auth/register')
-  register(@Body() body: any) {
+  register(@Body() body: CreateUserDto) {
     return this.apiGatewayService.register(body);
   }
 
   @Post('auth/login')
-  login(@Body() body: any) {
+  login(@Body() body: LoginUserDto) {
     return this.apiGatewayService.login(body);
   }
 
@@ -50,7 +50,6 @@ export class ApiGatewayController {
   @Roles('admin')
   @Patch('products/:id')
   updateProduct(@Param('id') id: string, @Body() body: UpdateProductDto) {
-    // รวม ID เข้ากับ Body เพื่อส่งไป Service
     return this.apiGatewayService.updateProduct({ ...body, id });
   }
 

@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@app/prisma';
 import { CreateProductDto, UpdateProductDto } from '@app/shared-lib';
@@ -15,15 +16,19 @@ export class ProductService {
       where: { id: productId },
     });
     if (!product) {
-      throw new UnauthorizedException('Product not found');
+      throw new NotFoundException('Product not found');
     }
     return product;
   }
 
   async createProduct(data: CreateProductDto) {
-    return this.prisma.product.create({
-      data,
+    const existing = await this.prisma.product.findFirst({
+      where: { name: data.name },
     });
+    if (existing) {
+      throw new ConflictException('Product with this name already exists');
+    }
+    return this.prisma.product.create({ data });
   }
 
   async updateProduct(data: UpdateProductDto) {
@@ -31,11 +36,13 @@ export class ProductService {
       where: { id: data.id },
     });
     if (!existingProduct) {
-      throw new UnauthorizedException('Product not found');
+      throw new NotFoundException('Product not found');
     }
+
+    const { id, ...updateData } = data;
     return this.prisma.product.update({
-      where: { id: data.id },
-      data,
+      where: { id },
+      data: updateData,
     });
   }
 
@@ -44,7 +51,7 @@ export class ProductService {
       where: { id: productId },
     });
     if (!existingProduct) {
-      throw new UnauthorizedException('Product not found');
+      throw new NotFoundException('Product not found');
     }
     return this.prisma.product.delete({
       where: { id: productId },

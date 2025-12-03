@@ -7,7 +7,6 @@ import { CreateUserDto, LoginUserDto, UpdateProfileDto } from '@app/shared-lib';
 export class AuthServiceController {
   constructor(private readonly authService: AuthService) {}
 
-  // รอรับคำสั่งหัวข้อ 'auth.register'
   @MessagePattern('auth.register')
   async handleRegister(@Payload() data: CreateUserDto) {
     return this.authService.register(data);
