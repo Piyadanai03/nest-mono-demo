@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { LoggerModule } from '@app/shared-lib/logging/logger.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         options: { host: 'localhost', port: 3003 },
       },
     ]),
+    LoggerModule,
   ],
   controllers: [ApiGatewayController],
   providers: [ApiGatewayService, JwtService, JwtStrategy],

@@ -4,6 +4,7 @@ import { ProductService } from './product-service.service';
 import { PrismaModule } from '@app/prisma';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { LoggerModule } from '@app/shared-lib/logging/logger.module';
 
 
 @Module({
@@ -18,6 +19,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
+    LoggerModule,
   ],
   controllers: [ProductServiceController],
   providers: [ProductService],

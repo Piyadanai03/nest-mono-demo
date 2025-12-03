@@ -4,6 +4,7 @@ import { AuthService } from './auth-service.service';
 import { PrismaModule } from '@app/prisma';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { LoggerModule } from '@app/shared-lib/logging/logger.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
+    LoggerModule,
   ],
   controllers: [AuthServiceController],
   providers: [AuthService],
