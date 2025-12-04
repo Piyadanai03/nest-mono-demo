@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    // "module": "commonjs",
+    // "moduleResolution": "node",
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "resolvePackageJsonExports": true,
@@ -16,6 +18,7 @@
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
+    // "strictNullChecks": false,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,

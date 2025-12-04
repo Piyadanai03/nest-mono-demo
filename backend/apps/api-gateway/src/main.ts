@@ -1,13 +1,16 @@
+import '@app/shared-lib/tracing';
 import { NestFactory } from '@nestjs/core';
 import { ApiGatewayModule } from './api-gateway.module';
 import { Logger } from 'nestjs-pino';
-import { GlobalExceptionFilter } from '@app/shared-lib/logging/exception.filter';
+import { GlobalExceptionFilter } from '@app/shared-lib/logging/global-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
 
-  app.useLogger(app.get(Logger));
-  app.useGlobalFilters(new GlobalExceptionFilter(app.get(Logger)));
+  const logger = app.get(Logger);
+  app.useLogger(logger);
+
+  app.useGlobalFilters(new GlobalExceptionFilter(logger));
 
   await app.listen(3001);
 

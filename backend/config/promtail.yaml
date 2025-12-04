@@ -1,0 +1,54 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Job 1: อ่านจาก Docker Container (เผื่ออนาคตคุณรัน Nest ใน Docker)
+  - job_name: docker
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: docker_logs
+          __path__: /var/lib/docker/containers/*/*-json.log
+    pipeline_stages:
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            attrs:
+      - json:
+          expressions:
+            tag:
+          source: attrs
+      - regex:
+          expression: (?P<image_name>(?:[^/]+/)?[^/]+/[^/]+):(?P<image_tag>[^/]+)
+          source: tag
+      - labels:
+          image_name:
+          image_tag:
+
+  # Job 2: อ่านจากไฟล์ Local (ที่คุณรัน npm run start:dev)
+  - job_name: local_file_logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nestjs_local
+          __path__: /var/log/app_logs/*.log  # อ่านทุกไฟล์ .log
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            msg: msg
+            service: service
+            trace_id: trace_id
+      - labels:
+          level:
+          service:

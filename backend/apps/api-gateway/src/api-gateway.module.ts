@@ -10,6 +10,7 @@ import { LoggerModule } from '@app/shared-lib/logging/logger.module';
 
 @Module({
   imports: [
+    LoggerModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: './.env',
@@ -27,7 +28,6 @@ import { LoggerModule } from '@app/shared-lib/logging/logger.module';
         options: { host: 'localhost', port: 3003 },
       },
     ]),
-    LoggerModule,
   ],
   controllers: [ApiGatewayController],
   providers: [ApiGatewayService, JwtService, JwtStrategy],
