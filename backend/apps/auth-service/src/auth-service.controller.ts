@@ -1,24 +1,24 @@
-import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
-import { AuthService } from './auth-service.service';
+import { Controller, Post, Body, Patch } from '@nestjs/common';
 import { CreateUserDto, LoginUserDto, UpdateProfileDto } from '@app/shared-lib';
+import { AuthService } from './auth-service.service';
 
-@Controller()
+
+@Controller('auth')
 export class AuthServiceController {
   constructor(private readonly authService: AuthService) {}
 
-  @MessagePattern('auth.register')
-  async handleRegister(@Payload() data: CreateUserDto) {
-    return this.authService.register(data);
+  @Post('register')
+  register(@Body() createUserDto: CreateUserDto) {
+    return this.authService.register(createUserDto);
   }
 
-  @MessagePattern('auth.login')
-  async handleLogin(@Payload() data: LoginUserDto) {
-    return this.authService.login(data);
+  @Post('login')
+  login(@Body() loginUserDto: LoginUserDto) {
+    return this.authService.login(loginUserDto);
   }
 
-  @MessagePattern('auth.updateProfile')
-  async handleUpdateProfile(@Payload() data: UpdateProfileDto) {
-    return this.authService.updateProfile(data);
+  @Patch('profile')
+  updateProfile(@Body() updateProfileDto: UpdateProfileDto) {
+    return this.authService.updateProfile(updateProfileDto);
   }
 }

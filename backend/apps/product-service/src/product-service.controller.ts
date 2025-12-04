@@ -1,34 +1,33 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
 import { ProductService } from './product-service.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateProductDto, UpdateProductDto } from '@app/shared-lib';
 
-@Controller()
+@Controller('products')
 export class ProductServiceController {
   constructor(private readonly productService: ProductService) {}
 
-  @MessagePattern('product.create')
-  async handleCreateProduct(@Payload() data: CreateProductDto) {
+  @Post()
+  create(@Body() data: CreateProductDto) {
     return this.productService.createProduct(data);
   }
 
-  @MessagePattern('product.update')
-  async handleUpdateProduct(@Payload() data: UpdateProductDto) {
-    return this.productService.updateProduct(data);
-  }
-
-  @MessagePattern('product.findAll')
-  async handleGetAllProducts() {
+  @Get()
+  findAll() {
     return this.productService.getAllProducts();
   }
 
-  @MessagePattern('product.findOne')
-  async handleGetProductById(@Payload() id: string) {
+  @Get(':id')
+  findOne(@Param('id') id: string) {
     return this.productService.getProductById(id);
   }
 
-  @MessagePattern('product.delete')
-  async handleDeleteProduct(@Payload() id: string) {
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() data: UpdateProductDto) {
+    return this.productService.updateProduct({ ...data, id });
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
     return this.productService.deleteProduct(id);
   }
 }

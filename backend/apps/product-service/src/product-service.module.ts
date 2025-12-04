@@ -6,7 +6,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from '@app/shared-lib/logging/logger.module';
 
-
 @Module({
   imports: [
     PrismaModule,
