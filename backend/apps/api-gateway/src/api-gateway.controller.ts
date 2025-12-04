@@ -1,13 +1,32 @@
-import { Controller, Get, Post, Body, Put, Patch, UseGuards, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Patch,
+  UseGuards,
+  Param,
+  Delete,
+  Logger,
+} from '@nestjs/common';
 import { ApiGatewayService } from './api-gateway.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from '@nestjs/common';
-import { UpdateProfileDto, CreateProductDto, UpdateProductDto  , LoginUserDto , CreateUserDto} from '@app/shared-lib';
+import {
+  UpdateProfileDto,
+  CreateProductDto,
+  UpdateProductDto,
+  LoginUserDto,
+  CreateUserDto,
+} from '@app/shared-lib';
 import { Roles } from './decorators/roles.decorator';
 import { RolesGuard } from './guards/roles.guard';
+import { trace } from '@opentelemetry/api';
 
 @Controller()
 export class ApiGatewayController {
+  private readonly logger = new Logger(ApiGatewayController.name);
   constructor(private readonly apiGatewayService: ApiGatewayService) {}
 
   @Post('auth/register')
@@ -28,7 +47,6 @@ export class ApiGatewayController {
     return this.apiGatewayService.updateProfile(dataToSend);
   }
 
-
   @Get('products')
   findAllProducts() {
     return this.apiGatewayService.findAllProducts();
@@ -42,7 +60,26 @@ export class ApiGatewayController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   @Post('products')
-  createProduct(@Body() body: CreateProductDto) {
+  async createProduct(@Request() req, @Body() body: CreateProductDto) {
+    const userId = req.user.userId;
+    const email = req.user.email;
+
+    const span = trace.getActiveSpan();
+    if (span) {
+      span.setAttribute('user.id', userId);
+      span.setAttribute('user.email', email);
+      span.setAttribute('action', 'create_product');
+    }
+
+    const traceId = span?.spanContext().traceId;
+
+    this.logger.log({
+      msg: 'Admin is creating a product',
+      userId: userId,
+      productName: body.name,
+      traceId: traceId,
+    });
+
     return this.apiGatewayService.createProduct(body);
   }
 
