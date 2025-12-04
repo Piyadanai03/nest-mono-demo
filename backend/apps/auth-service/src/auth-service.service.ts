@@ -75,9 +75,13 @@ export class AuthService {
       span.addEvent('user.login.start');
       try {
         // Find user
-        span.addEvent('db.query.start', { query: 'findUnique', email: data.email });
+        span.addEvent('db.query.start', {
+          query: 'findUnique',
+          email: data.email,
+        });
         const user = await this.prisma.user.findUnique({
           where: { email: data.email },
+          include: { role: true },
         });
         span.addEvent('db.query.end');
         if (!user) {
@@ -88,7 +92,10 @@ export class AuthService {
           throw new UnauthorizedException('Invalid credentials');
         }
         // Verify password
-        const passwordValid = await bcrypt.compare(data.password, user.password);
+        const passwordValid = await bcrypt.compare(
+          data.password,
+          user.password,
+        );
         if (!passwordValid) {
           span.addEvent('validation.failed', {
             reason: 'invalid_password',
@@ -97,7 +104,11 @@ export class AuthService {
           throw new UnauthorizedException('Invalid credentials');
         }
         // Generate JWT
-        const payload = { sub: user.id, email: user.email, role: user.roleId };
+        const payload = {
+          sub: user.id,
+          email: user.email,
+          role: user.role.name,
+        };
         const token = this.jwtService.sign(payload);
         span.addEvent('user.login.success', { userId: user.id });
         return { accessToken: token };
@@ -118,7 +129,10 @@ export class AuthService {
       span.addEvent('profile.update.start');
       try {
         // Check user existence
-        span.addEvent('db.query.start', { query: 'findUnique', userId: data.userId });
+        span.addEvent('db.query.start', {
+          query: 'findUnique',
+          userId: data.userId,
+        });
         const user = await this.prisma.user.findUnique({
           where: { id: data.userId },
         });
@@ -131,7 +145,10 @@ export class AuthService {
           throw new NotFoundException('User not found');
         }
         // Update profile
-        span.addEvent('db.query.start', { query: 'update', userId: data.userId });
+        span.addEvent('db.query.start', {
+          query: 'update',
+          userId: data.userId,
+        });
         const updatedUser = await this.prisma.user.update({
           where: { id: data.userId },
           data: {
@@ -140,7 +157,11 @@ export class AuthService {
         });
         span.addEvent('db.query.end');
         span.addEvent('profile.update.success', { userId: updatedUser.id });
-        return { id: updatedUser.id, email: updatedUser.email, name: updatedUser.name };
+        return {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+        };
       } catch (error) {
         span.recordException(error);
         span.addEvent('profile.update.error', { message: error.message });
