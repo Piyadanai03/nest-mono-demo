@@ -9,9 +9,13 @@ import { context, trace } from '@opentelemetry/api';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
+        const serviceName =
+          configService.get<string>('OTEL_SERVICE_NAME') ||
+          configService.get<string>('SERVICE_NAME') ||
+          'unknown-service';
+
         return {
           pinoHttp: {
-            // 1. ตั้งค่าการส่ง Log 2 ทาง (Console + File)
             transport: {
               targets: [
                 {
@@ -24,38 +28,34 @@ import { context, trace } from '@opentelemetry/api';
                   },
                 },
                 {
-                  target: 'pino/file',
+                  target: 'pino-loki',
                   options: {
-                    destination: './logs/app.log',
-                    mkdir: true,
+                    batching: true,
+                    interval: 5,
+                    host: 'http://loki:3100',
+                    labels: {
+                      service: serviceName,
+                    },
                   },
                 },
               ],
             },
-
-            // 2. ใส่ชื่อ Service
-            base: {
-              service: configService.get<string>('SERVICE_NAME') || 'unknown-service',
-            },
-
-            // 3. ปิดบังข้อมูล Sensitive
+            mixin: () => ({ service: serviceName }),
             redact: {
               paths: ['req.headers.authorization', 'req.body.password'],
               censor: '***REDACTED***',
             },
-
-            // 4. เปิด Auto Log เพื่อให้เห็นเคสสำเร็จ (200 OK)
-            autoLogging: true,
-
-            // 5. ป้องกัน Log ซ้ำตอน Error (เพราะ GlobalExceptionFilter ทำหน้าที่นั้นแล้ว)
+            autoLogging: {
+              ignore: (req) => {
+                return req.url === '/metrics';
+              },
+            },
             customLogLevel: function (req, res, err) {
               if (res.statusCode >= 400 || err) {
-                return 'silent'; // เงียบไว้ ถ้าเป็น Error
+                return 'error';
               }
-              return 'info'; // Log ปกติ ถ้าสำเร็จ
+              return 'info';
             },
-
-            // 6. คัดเลือกข้อมูลที่จะ Log (เพื่อไม่ให้รกเกินไป)
             serializers: {
               req: (req) => ({
                 id: req.id,
@@ -64,17 +64,13 @@ import { context, trace } from '@opentelemetry/api';
                 query: req.query,
                 params: req.params,
               }),
-              res: (res) => ({
-                statusCode: res.statusCode,
-              }),
+              res: (res) => ({ statusCode: res.statusCode }),
             },
-
-            // 7. หัวใจสำคัญ: ดึง Trace ID จาก OpenTelemetry มาใส่ใน Log
             customProps: (req, res) => {
-               const span = trace.getSpan(context.active());
-               if (!span) return {};
-               const { traceId } = span.spanContext();
-               return { trace_id: traceId };
+              const span = trace.getSpan(context.active());
+              if (!span) return {};
+              const { traceId } = span.spanContext();
+              return { trace_id: traceId };
             },
           },
         };

@@ -1,16 +1,22 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { ConfigService } from '@nestjs/config';
 import { CreateUserDto, LoginUserDto, UpdateProfileDto, CreateProductDto, UpdateProductDto } from '@app/shared-lib';
 
 @Injectable()
 export class ApiGatewayService {
-  private readonly authServiceUrl = 'http://localhost:3002';
-  private readonly productServiceUrl = 'http://localhost:3003';
+  private readonly authServiceUrl: string;
+  private readonly productServiceUrl: string;
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
+    this.authServiceUrl = this.configService.get<string>('AUTH_SERVICE_URL') || 'http://localhost:3002';
+    this.productServiceUrl = this.configService.get<string>('PRODUCT_SERVICE_URL') || 'http://localhost:3003';
+  }
 
-  // Helper Function สำหรับยิง Request และจัดการ Error
   private async makeRequest(method: 'get' | 'post' | 'patch' | 'delete', url: string, data?: any) {
     try {
       const response = await firstValueFrom(
@@ -18,17 +24,16 @@ export class ApiGatewayService {
       );
       return response.data;
     } catch (error) {
-      // ถ้า Service ปลายทางตอบ Error (เช่น 404, 400) ให้ส่งต่อ Status นั้นเลย
+      console.error(`Error calling ${url}:`, error.message);
+      
       if (error.response) {
         throw new HttpException(error.response.data, error.response.status);
       }
-      // ถ้าติดต่อไม่ได้
       throw new HttpException('Service unavailable', HttpStatus.BAD_GATEWAY);
     }
   }
 
-
-
+  //Auth Service
   async register(data: CreateUserDto) {
     return this.makeRequest('post', `${this.authServiceUrl}/auth/register`, data);
   }
@@ -38,9 +43,8 @@ export class ApiGatewayService {
   async updateProfile(data: UpdateProfileDto) {
     return this.makeRequest('patch', `${this.authServiceUrl}/auth/profile`, data);
   }
-
   
-  // --- Product Service ---
+  // Product Service
   async createProduct(data: CreateProductDto) {
     return this.makeRequest('post', `${this.productServiceUrl}/products`, data);
   }

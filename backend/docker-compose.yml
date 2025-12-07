@@ -1,4 +1,61 @@
 services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_NAME: api-gateway
+    ports:
+      - '3001:3001'
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:3002
+      - PRODUCT_SERVICE_URL=http://product-service:3003
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - OTEL_SERVICE_NAME=api-gateway
+      - JWT_SECRET=super-secret
+    depends_on:
+      - auth-service
+      - product-service
+      - loki
+      - tempo
+    networks:
+      - microservices-network
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_NAME: auth-service
+    ports:
+      - '3002:3002'
+    environment:
+      - DATABASE_URL=postgresql://admin:password@postgres:5432/nest_microservices?schema=public
+      - JWT_SECRET=super-secret
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - OTEL_SERVICE_NAME=auth-service
+    depends_on:
+      - postgres
+    networks:
+      - microservices-network
+
+  product-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_NAME: product-service
+    ports:
+      - '3003:3003'
+    environment:
+      - DATABASE_URL=postgresql://admin:password@postgres:5432/nest_microservices?schema=public
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - OTEL_SERVICE_NAME=product-service
+    depends_on:
+      - postgres
+    networks:
+      - microservices-network
+
   postgres:
     image: postgres:16
     container_name: nest_postgres
@@ -10,6 +67,77 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  loki:
+    image: grafana/loki:2.9.3
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./config/loki.yaml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - microservices-network
+
+  promtail:
+    image: grafana/promtail:2.9.3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config/promtail.yaml:/etc/promtail/config.yaml
+    command: -config.file=/etc/promtail/config.yaml
+    networks:
+      - microservices-network
+
+  tempo:
+    image: grafana/tempo:2.3.1
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./config/tempo.yaml:/etc/tempo.yaml
+      - tempo_data:/var/tempo
+    ports:
+      - "3200:3200"
+      - "4317:4317" # gRPC
+      - "4318:4318" # HTTP
+    networks:
+      - microservices-network
+
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    volumes:
+      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - microservices-network
+
+  grafana:
+    image: grafana/grafana:10.2.3
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    depends_on:
+      - loki
+      - tempo
+      - prometheus
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
 
 volumes:
   postgres_data:
+  grafana_data:
+  prometheus_data:
+  loki_data:
+  tempo_data:

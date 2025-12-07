@@ -4,12 +4,10 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { Resource } from '@opentelemetry/resources';
 import { SEMRESATTRS_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 
-const traceExporter = new OTLPTraceExporter({
-  url: 'http://localhost:4317',
-});
+const traceExporter = new OTLPTraceExporter();
 
 const resource = new Resource({
-  [SEMRESATTRS_SERVICE_NAME]: process.env.SERVICE_NAME || 'unknown-service',
+  [SEMRESATTRS_SERVICE_NAME]: process.env.SERVICE_NAME || process.env.OTEL_SERVICE_NAME || 'unknown-service',
 });
 
 const sdk = new NodeSDK({
@@ -26,7 +24,8 @@ const sdk = new NodeSDK({
 
 sdk.start();
 
-console.log(`📡 Tracing initialized for ${process.env.SERVICE_NAME}`);
+const serviceName = process.env.SERVICE_NAME || process.env.OTEL_SERVICE_NAME;
+console.log(`📡 Tracing initialized for ${serviceName}`);
 
 process.on('SIGTERM', () => {
   sdk

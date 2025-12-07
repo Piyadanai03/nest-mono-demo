@@ -7,12 +7,16 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LoggerModule } from '@app/shared-lib/logging/logger.module';
 import { HttpModule } from '@nestjs/axios';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: './.env',
+    }),
+    PrometheusModule.register({
+      path: '/metrics',
     }),
     PassportModule,
     HttpModule,

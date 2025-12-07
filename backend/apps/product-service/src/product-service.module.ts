@@ -5,6 +5,7 @@ import { PrismaModule } from '@app/prisma';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from '@app/shared-lib/logging/logger.module';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 
 @Module({
   imports: [
@@ -17,6 +18,9 @@ import { LoggerModule } from '@app/shared-lib/logging/logger.module';
         signOptions: { expiresIn: '1h' },
       }),
       inject: [ConfigService],
+    }),
+    PrometheusModule.register({
+      path: '/metrics',
     }),
     LoggerModule,
   ],
