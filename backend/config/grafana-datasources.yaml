@@ -5,7 +5,7 @@ datasources:
     type: tempo
     access: proxy
     orgId: 1
-    uid: tempo  # <--- กำหนด ID ให้ชัดเจน (เพื่อให้ Loki อ้างถึงได้)
+    uid: tempo
     url: http://tempo:3200
     basicAuth: false
     isDefault: false
@@ -23,8 +23,7 @@ datasources:
     editable: true
     jsonData:
       derivedFields:
-        # 👇 นี่คือส่วน "ทีเด็ด" ที่คุณต้องการ
-        - datasourceUid: tempo  # อ้างอิงไปหา uid ของ Tempo ด้านบน
-          matcherRegex: '"trace_id":"(\w+)"' # Regex จับค่า trace_id
+        - datasourceUid: tempo
+          matcherRegex: '"trace_id":"(\w+)"'
           name: TraceID
-          url: '$${__value.raw}' # Query ไปยัง Tempo
+          url: '$${__value.raw}'
