@@ -75,7 +75,7 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - ./config/loki.yaml:/etc/loki/local-config.yaml
-      - loki_data:/loki
+      - loki_data:/tmp/loki
     ports:
       - "3100:3100"
     networks:
@@ -95,7 +95,7 @@ services:
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./config/tempo.yaml:/etc/tempo.yaml
-      - tempo_data:/var/tempo
+      - tempo_data:/tmp/tempo
     ports:
       - "3200:3200"
       - "4317:4317" # gRPC
