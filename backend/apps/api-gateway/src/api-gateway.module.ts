@@ -8,9 +8,14 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { LoggerModule } from '@app/shared-lib/logging/logger.module';
 import { HttpModule } from '@nestjs/axios';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { ClsModule } from 'nestjs-cls';
 
 @Module({
   imports: [
+    ClsModule.forRoot({
+      global: true,
+      middleware: { mount: true },
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: './.env',

@@ -2,13 +2,14 @@ import { Module } from '@nestjs/common';
 import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { context, trace } from '@opentelemetry/api';
+import { ClsModule, ClsService } from 'nestjs-cls';
 
 @Module({
   imports: [
     PinoLoggerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
+      imports: [ConfigModule, ClsModule],
+      inject: [ConfigService, ClsService],
+      useFactory: async (configService: ConfigService, clsService: ClsService) => {
         const serviceName =
           configService.get<string>('OTEL_SERVICE_NAME') ||
           configService.get<string>('SERVICE_NAME') ||
@@ -68,9 +69,12 @@ import { context, trace } from '@opentelemetry/api';
             },
             customProps: (req, res) => {
               const span = trace.getSpan(context.active());
-              if (!span) return {};
-              const { traceId } = span.spanContext();
-              return { trace_id: traceId };
+
+              return {
+                trace_id: span?.spanContext().traceId, // Trace ID (เดิม)
+                userId: clsService.get('userId'), // ✅ User ID (ของใหม่! มาเองอัตโนมัติ)
+                requestId: clsService.getId(), // ✅ Request ID (ของใหม่! มาเองอัตโนมัติ)
+              };
             },
           },
         };

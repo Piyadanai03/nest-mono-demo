@@ -6,9 +6,14 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from '@app/shared-lib/logging/logger.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { ClsModule } from 'nestjs-cls';
 
 @Module({
   imports: [
+    ClsModule.forRoot({
+      global: true,
+      middleware: { mount: true },
+    }),
     PrismaModule,
     ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.registerAsync({

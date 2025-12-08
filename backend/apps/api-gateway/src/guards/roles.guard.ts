@@ -16,6 +16,6 @@ export class RolesGuard implements CanActivate {
     if (requiredRoles.includes(user.role)) {
       return true;
     }
-    throw new ForbiddenException('คุณไม่มีสิทธิ์ใช้งานส่วนนี้ (Admin Only)');
+    throw new ForbiddenException('You do not have permission to access this section (Admin Only)');
   }
 }

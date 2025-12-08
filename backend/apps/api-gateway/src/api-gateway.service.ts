@@ -9,6 +9,7 @@ import {
   CreateProductDto,
   UpdateProductDto,
 } from '@app/shared-lib';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class ApiGatewayService {
@@ -18,6 +19,7 @@ export class ApiGatewayService {
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+    private readonly cls: ClsService,
   ) {
     this.authServiceUrl = this.configService.get<string>('AUTH_SERVICE_URL')!;
     this.productServiceUrl = this.configService.get<string>(
@@ -30,9 +32,17 @@ export class ApiGatewayService {
     url: string,
     data?: any,
   ) {
+    const userId = this.cls.get('userId');
+    const requestId = this.cls.getId();
+
     try {
       const response = await firstValueFrom(
-        this.httpService[method](url, data),
+        this.httpService[method](url, data, {
+          headers: {
+            'x-user-id': userId,
+            'x-request-id': requestId,
+          },
+        }),
       );
       return response.data;
     } catch (error) {
