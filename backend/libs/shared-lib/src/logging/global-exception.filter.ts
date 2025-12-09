@@ -18,7 +18,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       ? exception.getResponse()
       : { message: (exception as any).message || 'Internal server error' };
 
-    // 1. Log ลง Console/File (เพื่อให้ Promtail อ่านไป Grafana)
+    // Log ลง Console/File (เพื่อให้ Promtail อ่านไป Grafana)
     this.logger.error({
       msg: 'Request Failed',
       status,
@@ -28,7 +28,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       stack: (exception as any).stack, // เก็บ Stack Trace ไว้แก้บั๊ก
     });
 
-    // 2. ส่ง Response กลับไปหา User (อันนี้คือส่วนที่ขาดไป)
+    //ส่ง Response กลับไป
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),

@@ -9,12 +9,17 @@ import { LoggerModule } from '@app/shared-lib/logging/logger.module';
 import { HttpModule } from '@nestjs/axios';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { ClsModule } from 'nestjs-cls';
+import { randomUUID } from 'crypto';
 
 @Module({
   imports: [
     ClsModule.forRoot({
       global: true,
-      middleware: { mount: true },
+      middleware: {
+        mount: true,
+        generateId: true,
+        idGenerator: (req) => req.headers['x-request-id'] ?? randomUUID(),
+      },
     }),
     ConfigModule.forRoot({
       isGlobal: true,

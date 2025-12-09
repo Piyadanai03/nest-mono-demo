@@ -7,12 +7,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from '@app/shared-lib/logging/logger.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { ClsModule } from 'nestjs-cls';
+import { randomUUID } from 'crypto';
 
 @Module({
   imports: [
     ClsModule.forRoot({
       global: true,
-      middleware: { mount: true },
+      middleware: {
+        mount: true,
+        generateId: true,
+        idGenerator: (req) => req.headers['x-request-id'] ?? randomUUID(),
+      },
     }),
     PrismaModule,
     ConfigModule.forRoot({ isGlobal: true }),

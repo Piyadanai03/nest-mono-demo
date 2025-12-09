@@ -3,13 +3,18 @@ import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { context, trace } from '@opentelemetry/api';
 import { ClsModule, ClsService } from 'nestjs-cls';
+import { randomUUID } from 'crypto';
+import { ClsServiceManager } from 'nestjs-cls';
 
 @Module({
   imports: [
     PinoLoggerModule.forRootAsync({
       imports: [ConfigModule, ClsModule],
       inject: [ConfigService, ClsService],
-      useFactory: async (configService: ConfigService, clsService: ClsService) => {
+      useFactory: async (
+        configService: ConfigService,
+        clsService: ClsService,
+      ) => {
         const serviceName =
           configService.get<string>('OTEL_SERVICE_NAME') ||
           configService.get<string>('SERVICE_NAME') ||
@@ -71,10 +76,14 @@ import { ClsModule, ClsService } from 'nestjs-cls';
               const span = trace.getSpan(context.active());
 
               return {
-                trace_id: span?.spanContext().traceId, // Trace ID (เดิม)
-                userId: clsService.get('userId'), // ✅ User ID (ของใหม่! มาเองอัตโนมัติ)
-                requestId: clsService.getId(), // ✅ Request ID (ของใหม่! มาเองอัตโนมัติ)
+                trace_id: span?.spanContext().traceId,
+                userId: clsService.get('userId'),
               };
+            },
+            genReqId: (req, res) => {
+              const cls = ClsServiceManager.getClsService();
+              const clsId = cls?.getId();
+              return clsId || req.headers['x-request-id'] || randomUUID();
             },
           },
         };
