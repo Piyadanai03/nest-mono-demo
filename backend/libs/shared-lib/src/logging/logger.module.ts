@@ -53,7 +53,11 @@ import { ClsServiceManager } from 'nestjs-cls';
             },
             autoLogging: {
               ignore: (req) => {
-                return req.url === '/metrics';
+                const url = req.url ?? '';
+                const ignoredPaths = ['/metrics'];
+                return (
+                  ignoredPaths.includes(url)
+                );
               },
             },
             customLogLevel: function (req, res, err) {
